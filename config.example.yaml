@@ -1,0 +1,134 @@
+# ============================================
+# Steam Proxy 分流配置模板
+# 复制为 config.yaml，把你自己的节点填进 proxies
+# ============================================
+
+tun:
+  enable: true
+  stack: mixed
+  dns-hijack:
+    - any:53
+    - tcp://any:53
+  auto-route: true
+  auto-detect-interface: true
+  strict-route: false
+  mtu: 1500
+
+mixed-port: 7890
+allow-lan: false
+bind-address: 127.0.0.1
+mode: rule
+log-level: warning
+ipv6: false
+unified-delay: true
+tcp-concurrent: true
+find-process-mode: "off"
+external-controller: 127.0.0.1:9090
+secret: ""
+
+dns:
+  enable: true
+  ipv6: false
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+    - '*.lan'
+    - '*.local'
+    - '+.stun.*.*'
+    - 'time.*.com'
+    - 'ntp.*.com'
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  fallback:
+    - https://1.1.1.1/dns-query
+    - https://dns.google/dns-query
+  fallback-filter:
+    geoip: false
+    ipcidr:
+      - 240.0.0.0/4
+      - 0.0.0.0/32
+
+# ============ 这里填你自己的节点 ============
+# 支持 trojan / vmess / vless / ss / hysteria2 等 mihomo 全部协议
+proxies:
+  - name: "🇭🇰 香港节点 1"
+    type: trojan
+    server: your-server.example.com
+    port: 443
+    password: "your-password"
+    sni: your-sni.example.com
+    skip-cert-verify: true
+    udp: true
+
+  # - name: "🇭🇰 香港节点 2"
+  #   type: vmess
+  #   server: ...
+  #   port: 443
+  #   uuid: ...
+  #   alterId: 0
+  #   cipher: auto
+
+proxy-groups:
+  - name: "香港加速"          # 插件按此名识别，不要改
+    type: url-test
+    url: "https://www.gstatic.com/generate_204"
+    interval: 300
+    tolerance: 50
+    lazy: false
+    proxies:
+      - "🇭🇰 香港节点 1"
+
+  - name: "手动选择"
+    type: select
+    proxies:
+      - "香港加速"
+      - "🇭🇰 香港节点 1"
+      - DIRECT
+
+rules:
+  # 局域网直连（保护 SSH / Steam Link）
+  - IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
+  - IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
+  - IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
+  - IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
+  - IP-CIDR,169.254.0.0/16,DIRECT,no-resolve
+
+  # Steam 游戏下载 CDN 直连（国内更快）
+  - DOMAIN-SUFFIX,steamcontent.com,DIRECT
+  - DOMAIN-SUFFIX,steamcdn-a.akamaihd.net,DIRECT
+  - DOMAIN-SUFFIX,st.dl.eccdnx.com,DIRECT
+  - DOMAIN-SUFFIX,st.dl.bscstorage.net,DIRECT
+  - DOMAIN-SUFFIX,dl.steam.clngaa.com,DIRECT
+
+  # Steam 商店/社区 走代理
+  - DOMAIN-SUFFIX,steampowered.com,香港加速
+  - DOMAIN-SUFFIX,steamcommunity.com,香港加速
+  - DOMAIN-SUFFIX,steamstatic.com,香港加速
+  - DOMAIN-SUFFIX,steamusercontent.com,香港加速
+  - DOMAIN-SUFFIX,valvesoftware.com,香港加速
+
+  # Google
+  - DOMAIN-SUFFIX,google.com,香港加速
+  - DOMAIN-SUFFIX,googleapis.com,香港加速
+  - DOMAIN-SUFFIX,gstatic.com,香港加速
+  - DOMAIN-SUFFIX,youtube.com,香港加速
+  - DOMAIN-SUFFIX,googlevideo.com,香港加速
+
+  # GitHub
+  - DOMAIN-SUFFIX,github.com,香港加速
+  - DOMAIN-SUFFIX,githubusercontent.com,香港加速
+  - DOMAIN-SUFFIX,githubassets.com,香港加速
+
+  # 其它常用
+  - DOMAIN-SUFFIX,x.com,香港加速
+  - DOMAIN-SUFFIX,twitter.com,香港加速
+  - DOMAIN-SUFFIX,telegram.org,香港加速
+  - DOMAIN-SUFFIX,discord.com,香港加速
+  - DOMAIN-SUFFIX,openai.com,香港加速
+  - DOMAIN-SUFFIX,anthropic.com,香港加速
+
+  - MATCH,DIRECT

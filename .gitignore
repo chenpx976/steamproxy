@@ -4,6 +4,7 @@ dist/*.map
 
 # ⚠️ 生成的 clash 配置含节点凭据（服务器/密码/SNI），绝不入库
 *.yaml
+!config.example.yaml
 *.yml
 *.conf
 .env
