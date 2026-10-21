@@ -44,7 +44,8 @@ PROXY = '香港加速'
 
 # 精确域名直连：Steam 靠这些判断用户位置，代理会让它误判成香港
 DIRECT_EXACT = [
-    'api.steampowered.com',      # 内容服务器目录 / 位置探测
+    # 空：Valve 的 API/CM 在国内直连不稳定，走代理更可靠
+    # 下载位置改用 CellIDServerOverride 强制国内 CDN（见 README）
 ]
 
 DIRECT_ONLY = [
@@ -52,8 +53,6 @@ DIRECT_ONLY = [
     'steamcontent.com', 'steamcdn-a.akamaihd.net', 'steamcontent.tnkjmec.com',
     'dl.steam.clngaa.com', 'st.dl.eccdnx.com', 'st.dl.bscstorage.net',
     'st.dl.pinyuncloud.com', 'dl.steam.ksyna.com', 'csgo.wmsj.cn', 'dota2.wmsj.cn',
-    # Steam CM 联机服务器：走代理会干扰匹配、P2P 与下载调度
-    'steamserver.net',
     # 国内站点引用广泛，走代理只会变慢
     'google-analytics.com', 'googletagmanager.com', 'cnzz.com',
 ]
@@ -62,7 +61,7 @@ VIA_PROXY = {
     'Steam': [
         'steampowered.com', 'steamcommunity.com', 'steamstatic.com', 'steamusercontent.com',
         'steam-chat.com', 'steamgames.com', 'steamtv.com', 'valvesoftware.com',
-        'steamconnect.net', 'steamdiscussions.com', 'steamdeck.com',
+        'steamconnect.net', 'steamserver.net', 'steamdiscussions.com', 'steamdeck.com',
         'underlords.com', 'dota2.com', 'counter-strike.net',
     ],
     'Google': [
@@ -157,6 +156,12 @@ def build():
           '    proxies:']
     for p in proxies:
         o.append(f'      - {q(p["name"])}')
+    o += ['  - name: "SteamAPI"', '    type: fallback',
+          '    url: "https://api.steampowered.com/ISteamWebAPIUtil/GetServerInfo/v1/"',
+          '    interval: 10', '    tolerance: 0', '    lazy: false',
+          '    proxies:',
+          '      - DIRECT',
+          f'      - {q(PROXY)}']
     o += ['  - name: "手动选择"', '    type: select', '    proxies:',
           f'      - {q(PROXY)}']
     for p in proxies:
@@ -175,6 +180,8 @@ def build():
     for d in DIRECT_ONLY:
         o.append(f'  - DOMAIN-SUFFIX,{d},DIRECT')
     # 需要加速的站点
+    o.append('  # Steam API：优先直连（位置检测正确→国内 CDN），失败 10s 内切代理')
+    o.append('  - DOMAIN,api.steampowered.com,SteamAPI')
     for group, domains in VIA_PROXY.items():
         o.append(f'  # {group}')
         for d in domains:
