@@ -14,7 +14,7 @@ SRC="$(cd "$(dirname "$0")" && pwd)"
 say() { printf '\033[36m==>\033[0m %s\n' "$1"; }
 die() { printf '\033[31m❌ %s\033[0m\n' "$1" >&2; exit 1; }
 
-say "1/5 检查 Decky Loader"
+say "1/6 检查 Decky Loader"
 if [ ! -x "$HOMEBREW/services/PluginLoader" ]; then
     echo "    未检测到 Decky，正在安装..."
     curl -fsSL https://github.com/SteamDeckHomebrew/decky-installer/raw/main/cli/install_release.sh | sh
@@ -23,7 +23,7 @@ else
 fi
 touch /home/deck/.steam/steam/.cef-enable-remote-debugging
 
-say "2/5 准备 clash 内核 (mihomo $MIHOMO_VER)"
+say "2/6 准备 clash 内核 (mihomo $MIHOMO_VER)"
 mkdir -p "$BASE/bin" "$BASE/web"
 if [ -x "$BASE/bin/clash" ]; then
     echo "    已存在: $("$BASE/bin/clash" -v 2>/dev/null | head -1)"
@@ -38,7 +38,24 @@ else
     echo "    已安装: $("$BASE/bin/clash" -v 2>/dev/null | head -1)"
 fi
 
-say "3/5 检查分流配置"
+say "3/6 准备分流规则集"
+mkdir -p "$BASE/ruleset"
+if [ -s "$BASE/ruleset/gfw.yaml" ]; then
+    echo "    已存在: $(grep -c \"^  - \" "$BASE/ruleset/gfw.yaml" 2>/dev/null || echo 0) 条"
+else
+    url="https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/gfw.txt"
+    echo "    下载 $url"
+    if curl -fsSL --retry 3 --max-time 60 -o "$BASE/ruleset/gfw.yaml.tmp" "$url"; then
+        mv "$BASE/ruleset/gfw.yaml.tmp" "$BASE/ruleset/gfw.yaml"
+        chmod 644 "$BASE/ruleset/gfw.yaml"
+        echo "    已下载: $(grep -c \"^  - \" "$BASE/ruleset/gfw.yaml") 条被墙域名"
+    else
+        rm -f "$BASE/ruleset/gfw.yaml.tmp"
+        echo "    ⚠ 规则集下载失败（配置里的 RULE-SET 将不生效，其余分流正常）"
+    fi
+fi
+
+say "4/6 检查分流配置"
 if [ ! -f "$BASE/config.yaml" ]; then
     if [ -n "${1:-}" ] && [ -f "$1" ]; then
         cp "$1" "$BASE/config.yaml"
@@ -51,14 +68,14 @@ if [ ! -f "$BASE/config.yaml" ]; then
 fi
 chmod 600 "$BASE/config.yaml"
 
-say "4/5 部署插件"
+say "5/6 部署插件"
 rm -rf "$PLUGIN_DIR"
 mkdir -p "$PLUGIN_DIR"
 cp -r "$SRC/plugin.json" "$SRC/package.json" "$SRC/main.py" "$SRC/dist" "$PLUGIN_DIR/"
 chown -R root:root "$PLUGIN_DIR"
 chmod -R a+rX "$PLUGIN_DIR"
 
-say "5/5 注册开机自启服务"
+say "6/6 注册开机自启服务"
 cat > /etc/systemd/system/steam-clash.service <<EOM
 [Unit]
 Description=Clash Steam Accelerator
