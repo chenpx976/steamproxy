@@ -1,0 +1,17 @@
+{
+  "name": "SteamProxy",
+  "author": "color",
+  "flags": [
+    "root"
+  ],
+  "api_version": 2,
+  "publish": {
+    "tags": [
+      "network",
+      "root",
+      "utility"
+    ],
+    "description": "香港节点自动选优，只代理 Steam/Google/GitHub 等站点，国内流量直连",
+    "image": ""
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "steam-proxy",
+  "version": "1.0.0",
+  "description": "Steam 加速：香港节点自动选优，只代理 Steam / Google / GitHub 等",
+  "type": "module",
+  "scripts": {
+    "build": "rollup -c"
+  },
+  "devDependencies": {
+    "@decky/api": "^1.1.2",
+    "@decky/rollup": "^1.0.1",
+    "@decky/ui": "^4.7.1",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "rollup": "^4.22.4"
+  },
+  "dependencies": {
+    "react-icons": "^5.3.0"
+  }
+}
