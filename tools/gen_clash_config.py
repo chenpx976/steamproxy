@@ -156,12 +156,6 @@ def build():
           '    proxies:']
     for p in proxies:
         o.append(f'      - {q(p["name"])}')
-    o += ['  - name: "SteamAPI"', '    type: fallback',
-          '    url: "https://api.steampowered.com/ISteamWebAPIUtil/GetServerInfo/v1/"',
-          '    interval: 10', '    tolerance: 0', '    lazy: false',
-          '    proxies:',
-          '      - DIRECT',
-          f'      - {q(PROXY)}']
     o += ['  - name: "手动选择"', '    type: select', '    proxies:',
           f'      - {q(PROXY)}']
     for p in proxies:
@@ -180,8 +174,6 @@ def build():
     for d in DIRECT_ONLY:
         o.append(f'  - DOMAIN-SUFFIX,{d},DIRECT')
     # 需要加速的站点
-    o.append('  # Steam API：优先直连（位置检测正确→国内 CDN），失败 10s 内切代理')
-    o.append('  - DOMAIN,api.steampowered.com,SteamAPI')
     for group, domains in VIA_PROXY.items():
         o.append(f'  # {group}')
         for d in domains:
