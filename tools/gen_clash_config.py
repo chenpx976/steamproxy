@@ -42,11 +42,18 @@ proxies.sort(key=lambda p: (0 if '高级' in p['name'] else 1 if '标准' in p['
 # ---------- 规则表 ----------
 PROXY = '香港加速'
 
+# 精确域名直连：Steam 靠这些判断用户位置，代理会让它误判成香港
+DIRECT_EXACT = [
+    'api.steampowered.com',      # 内容服务器目录 / 位置探测
+]
+
 DIRECT_ONLY = [
     # Steam 游戏下载 CDN（国内直连更快，走代理反而拖慢）
     'steamcontent.com', 'steamcdn-a.akamaihd.net', 'steamcontent.tnkjmec.com',
     'dl.steam.clngaa.com', 'st.dl.eccdnx.com', 'st.dl.bscstorage.net',
     'st.dl.pinyuncloud.com', 'dl.steam.ksyna.com', 'csgo.wmsj.cn', 'dota2.wmsj.cn',
+    # Steam CM 联机服务器：走代理会干扰匹配、P2P 与下载调度
+    'steamserver.net',
     # 国内站点引用广泛，走代理只会变慢
     'google-analytics.com', 'googletagmanager.com', 'cnzz.com',
 ]
@@ -55,7 +62,7 @@ VIA_PROXY = {
     'Steam': [
         'steampowered.com', 'steamcommunity.com', 'steamstatic.com', 'steamusercontent.com',
         'steam-chat.com', 'steamgames.com', 'steamtv.com', 'valvesoftware.com',
-        'steamconnect.net', 'steamserver.net', 'steamdiscussions.com', 'steamdeck.com',
+        'steamconnect.net', 'steamdiscussions.com', 'steamdeck.com',
         'underlords.com', 'dota2.com', 'counter-strike.net',
     ],
     'Google': [
@@ -149,6 +156,9 @@ def build():
     for cidr in ['127.0.0.0/8', '192.168.0.0/16', '10.0.0.0/8',
                  '172.16.0.0/12', '169.254.0.0/16']:
         o.append(f'  - IP-CIDR,{cidr},DIRECT,no-resolve')
+    # 精确域名直连（优先级最高）
+    for d in DIRECT_EXACT:
+        o.append(f'  - DOMAIN,{d},DIRECT')
     # 直连白名单
     for d in DIRECT_ONLY:
         o.append(f'  - DOMAIN-SUFFIX,{d},DIRECT')
