@@ -88,7 +88,10 @@ if systemctl is-active --quiet steam-clash; then
     echo "    clash 服务 : 运行中"
     code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 https://www.google.com || echo 000)
     echo "    google    : HTTP $code"
-    echo "    当前节点  : $(curl -s --max-time 5 http://127.0.0.1:9090/proxies | jq -r 'to_entries[]|select(.value.type=="URLTest").value.now' 2>/dev/null | head -1)"
+    node="$(curl -s --max-time 5 http://127.0.0.1:9090/proxies 2>/dev/null \
+        | jq -r 'to_entries[] | select(.value.type=="URLTest") | .value.now' 2>/dev/null \
+        | head -1)"
+    echo "    当前节点  : ${node:-(读取失败)}"
     echo
     echo "✅ 安装完成。打开 Decky 侧栏 → Steam Proxy"
 else
