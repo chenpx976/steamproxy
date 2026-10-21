@@ -93,6 +93,8 @@ VIA_PROXY = {
         'discord.com', 'discordapp.com', 'discord.gg', 'discordapp.net',
         'reddit.com', 'redd.it', 'redditmedia.com', 'redditstatic.com',
         'wikipedia.org', 'wikimedia.org', 'medium.com', 'quora.com',
+        # 图床：Steam 商店/社区页面大量引用，国内直连不通
+        'imgur.com', 'imgur.io',
     ],
 }
 
@@ -126,6 +128,16 @@ def build():
         o.append(f'    - {q(d)}')
     o += ['  fallback-filter:', '    geoip: false', '    ipcidr:',
           '      - 240.0.0.0/4', '      - 0.0.0.0/32', '']
+
+    o += ['rule-providers:',
+          '  gfw:',
+          '    type: http',
+          '    behavior: domain',
+          '    format: yaml',
+          '    url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/gfw.txt"',
+          '    path: ./ruleset/gfw.yaml',
+          '    interval: 86400',
+          '']
 
     o.append('proxies:')
     for p in proxies:
@@ -167,6 +179,8 @@ def build():
         o.append(f'  # {group}')
         for d in domains:
             o.append(f'  - DOMAIN-SUFFIX,{d},{PROXY}')
+    o.append(f'  # 通用被墙域名规则集（4.4k 条，自动更新）')
+    o.append(f'  - RULE-SET,gfw,{PROXY}')
     o.append('  - MATCH,DIRECT')
     return '\n'.join(o) + '\n'
 
